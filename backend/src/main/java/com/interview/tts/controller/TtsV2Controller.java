@@ -1,6 +1,8 @@
 package com.interview.tts.controller;
 
+import com.interview.tts.annotation.RequirePermission;
 import com.interview.tts.dto.ApiResponse;
+import com.interview.tts.entity.UserType;
 import com.interview.tts.interceptor.UserKeyInterceptor;
 import com.interview.tts.service.ttsv2.TtsV2Request;
 import com.interview.tts.service.ttsv2.TtsV2Response;
@@ -27,6 +29,7 @@ public class TtsV2Controller {
     /**
      * 合成语音
      */
+    @RequirePermission(UserType.USER)
     @PostMapping("/synthesize")
     public ApiResponse<TtsV2Response> synthesize(
             @RequestBody TtsV2Request request,

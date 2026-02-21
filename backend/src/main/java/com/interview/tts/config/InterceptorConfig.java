@@ -1,6 +1,7 @@
 package com.interview.tts.config;
 
 import com.interview.tts.interceptor.AuthInterceptor;
+import com.interview.tts.interceptor.PermissionInterceptor;
 import com.interview.tts.interceptor.UserKeyInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +14,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
 
     private final UserKeyInterceptor userKeyInterceptor;
     private final AuthInterceptor authInterceptor;
+    private final PermissionInterceptor permissionInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
@@ -21,5 +23,8 @@ public class InterceptorConfig implements WebMvcConfigurer {
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/api/**")
                 .excludePathPatterns("/api/auth/send-code");
+        registry.addInterceptor(permissionInterceptor)
+                .addPathPatterns("/api/**")
+                .excludePathPatterns("/api/auth/**", "/api/vip/**");
     }
 }

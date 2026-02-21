@@ -45,9 +45,13 @@
           v-for="plan in plans"
           :key="plan.type"
           class="plan-item"
-          :class="{ active: selectedPlan === plan.type }"
+          :class="{
+            active: selectedPlan === plan.type,
+            recommended: plan.type === 'YEARLY'
+          }"
           @click="selectedPlan = plan.type"
         >
+          <text class="recommend-tag" v-if="plan.type === 'YEARLY'">特惠</text>
           <text class="plan-name">{{ plan.name }}</text>
           <text class="plan-price">¥{{ plan.price / 100 }}</text>
           <text class="plan-days">{{ plan.days }}天</text>
@@ -131,13 +135,18 @@ async function handleBuy() {
 <style lang="scss" scoped>
 .vip-page {
   min-height: 100vh;
-  background: linear-gradient(160deg, #1E1B4B 0%, #312E81 100%);
+  background: linear-gradient(180deg, #0a0a0f 0%, #1a1a2e 100%);
   padding: 60px 24px 40px;
 }
 
 .header {
   text-align: center;
-  padding: 40px 0;
+  padding: 60px 40px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20rpx);
+  border-radius: 24rpx;
+  border: 1rpx solid rgba(255, 215, 0, 0.2);
+  margin-bottom: 40rpx;
 }
 
 .vip-icon {
@@ -150,7 +159,9 @@ async function handleBuy() {
   display: block;
   font-size: 28px;
   font-weight: 700;
-  color: #F1F0FF;
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   margin-bottom: 8px;
 }
 
@@ -172,9 +183,11 @@ async function handleBuy() {
 }
 
 .section {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10rpx);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.05);
   margin-bottom: 16px;
 }
 
@@ -218,10 +231,27 @@ async function handleBuy() {
   padding: 16px 8px;
   text-align: center;
   transition: all 0.2s;
+  position: relative;
 
   &.active {
     border-color: #FFD700;
     background: rgba(255, 215, 0, 0.1);
+  }
+
+  &.recommended {
+    transform: scale(1.05);
+    border: 2rpx solid;
+    border-image: linear-gradient(135deg, #FFD700, #FF6B00) 1;
+    animation: glow 2s ease-in-out infinite;
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20rpx rgba(255, 215, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40rpx rgba(255, 215, 0, 0.6);
   }
 }
 
@@ -244,6 +274,18 @@ async function handleBuy() {
   display: block;
   font-size: 12px;
   color: rgba(220, 218, 255, 0.6);
+}
+
+.recommend-tag {
+  position: absolute;
+  top: -16rpx;
+  right: 16rpx;
+  background: linear-gradient(135deg, #FFD700, #FF6B00);
+  color: #000;
+  font-size: 20rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 20rpx;
+  font-weight: bold;
 }
 
 .action {

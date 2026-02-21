@@ -188,7 +188,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { getUserKey, initUser, getMyList, getUserInfo } from '@/api'
+import { getUserKey, initUser, getMyList } from '@/api'
+import { getUserInfo } from '@/api/auth'
 
 const recentList = ref([])
 const loading = ref(false)
@@ -212,9 +213,12 @@ onMounted(async () => {
 })
 
 async function loadUserInfo() {
+  if (!token.value) return
   try {
     const res = await getUserInfo()
-    userInfo.value = res.data
+    if (res && res.data) {
+      userInfo.value = res.data
+    }
   } catch (e) {
     console.error('获取用户信息失败:', e)
   }

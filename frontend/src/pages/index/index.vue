@@ -25,6 +25,29 @@
       </view>
     </view>
 
+    <!-- 用户状态栏 -->
+    <view class="user-status-bar" v-if="isLoggedIn">
+      <view class="user-info" @click="goToMy">
+        <view class="avatar">
+          <text>👤</text>
+        </view>
+        <text class="username">{{ userInfo?.nickname || '用户' }}</text>
+      </view>
+      <view class="quota-info" v-if="!isVip">
+        <text class="quota-text">{{ usedChars }} / {{ charLimit }} 字</text>
+        <view class="quota-bar">
+          <view class="quota-fill" :style="{ width: Math.min((usedChars / charLimit * 100), 100) + '%' }"></view>
+        </view>
+      </view>
+      <text class="vip-badge" v-else>VIP</text>
+    </view>
+
+    <!-- 登录/开通会员栏 -->
+    <view class="login-bar" v-else>
+      <button class="vip-btn" @click="goToVip">开通会员</button>
+      <text class="login-link" @click="goToLogin">登录</text>
+    </view>
+
     <!-- 核心场景区 -->
     <view class="scenario-section">
       <view class="scenario-card primary" @click="goToTextToAudio">
@@ -83,17 +106,19 @@
         <view class="title-underline"></view>
       </view>
       <view class="tools-grid">
-        <view class="tool-item" @click="goToVoiceClone">
+        <view class="tool-item vip-locked" :class="{ locked: !isVip }" @click="handleToolClick('voiceClone')">
           <view class="tool-icon blue">
             <text>🎤</text>
           </view>
           <text class="tool-name">声音复刻</text>
+          <view class="tool-lock" v-if="!isVip">🔒</view>
         </view>
-        <view class="tool-item" @click="goToTranslate">
+        <view class="tool-item vip-locked" :class="{ locked: !isVip }" @click="handleToolClick('translate')">
           <view class="tool-icon amber">
             <text>🌐</text>
           </view>
           <text class="tool-name">同声传译</text>
+          <view class="tool-lock" v-if="!isVip">🔒</view>
         </view>
         <view class="tool-item" @click="goToPlaylist">
           <view class="tool-icon rose">
@@ -162,17 +187,50 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { getUserKey, initUser, getMyList } from '@/api'
+import { ref, computed, onMounted } from 'vue'
+import { getUserKey, initUser, getMyList, getUserInfo } from '@/api'
 
 const recentList = ref([])
 const loading = ref(false)
+const userInfo = ref(null)
+const token = ref('')
+
+// 计算属性
+const isLoggedIn = computed(() => !!token.value)
+const isVip = computed(() => userInfo.value?.userType === 'VIP')
+const usedChars = computed(() => userInfo.value?.monthlyCharUsed || 0)
+const charLimit = computed(() => userInfo.value?.monthlyCharLimit || 5000)
 
 onMounted(async () => {
   const userKey = getUserKey()
   await initUser(userKey)
+  token.value = uni.getStorageSync('token') || ''
+  if (token.value) {
+    loadUserInfo()
+  }
   loadRecentList()
 })
+
+async function loadUserInfo() {
+  try {
+    const res = await getUserInfo()
+    userInfo.value = res.data
+  } catch (e) {
+    console.error('获取用户信息失败:', e)
+  }
+}
+
+function goToLogin() {
+  uni.navigateTo({ url: '/pages/auth/login' })
+}
+
+function goToVip() {
+  uni.navigateTo({ url: '/pages/vip/index' })
+}
+
+function goToMy() {
+  uni.switchTab({ url: '/pages/my/my' })
+}
 
 async function loadRecentList() {
   loading.value = true
@@ -234,6 +292,24 @@ function goToPlaylist() {
   })
 }
 
+function handleToolClick(tool) {
+  const vipTools = ['voiceClone', 'translate']
+  if (vipTools.includes(tool) && !isVip.value) {
+    uni.showModal({
+      title: 'VIP专属',
+      content: '该功能需要VIP会员才能使用',
+      confirmText: '立即开通',
+      success: (res) => {
+        if (res.confirm) goToVip()
+      }
+    })
+    return
+  }
+  // 正常跳转
+  if (tool === 'voiceClone') goToVoiceClone()
+  if (tool === 'translate') goToTranslate()
+}
+
 function playItem(item) {
   if (!item.r2Url) {
     uni.showToast({
@@ -262,6 +338,101 @@ function formatDuration(seconds) {
   position: relative;
   overflow: hidden;
   padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+}
+
+// 用户状态栏
+.user-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 30rpx;
+  margin: 20rpx;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10rpx);
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.1);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.avatar {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+}
+
+.username {
+  color: #fff;
+  font-size: 28rpx;
+}
+
+.vip-badge {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #000;
+  font-size: 22rpx;
+  font-weight: bold;
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+}
+
+.quota-info {
+  flex: 1;
+  margin: 0 20rpx;
+}
+
+.quota-text {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 22rpx;
+}
+
+.quota-bar {
+  height: 8rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4rpx;
+  margin-top: 8rpx;
+  overflow: hidden;
+}
+
+.quota-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FF6B00, #FFA500);
+  border-radius: 4rpx;
+  transition: width 0.3s ease;
+}
+
+// 登录栏
+.login-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 30rpx;
+  padding: 20rpx 30rpx;
+  margin: 20rpx;
+}
+
+.vip-btn {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #000;
+  font-weight: bold;
+  border-radius: 30rpx;
+  padding: 12rpx 40rpx;
+  font-size: 26rpx;
+  border: none;
+  line-height: 1.5;
+}
+
+.login-link {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 26rpx;
 }
 
 // 动态声波背景
@@ -623,6 +794,29 @@ function formatDuration(seconds) {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.7);
   text-align: center;
+}
+
+// VIP 锁
+.tool-item.vip-locked {
+  position: relative;
+
+  &.locked {
+    opacity: 0.7;
+
+    .tool-icon {
+      filter: grayscale(50%);
+    }
+  }
+}
+
+.tool-lock {
+  position: absolute;
+  top: 8rpx;
+  right: 8rpx;
+  font-size: 20rpx;
+  background: rgba(255, 215, 0, 0.2);
+  padding: 4rpx 8rpx;
+  border-radius: 8rpx;
 }
 
 // 最近使用

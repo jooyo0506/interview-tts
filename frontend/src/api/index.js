@@ -1,8 +1,8 @@
 import axios from 'axios'
 import { ref } from 'vue'
 
-// 配置
-const API_BASE_URL = process.env.VUE_APP_API_BASE_URL || 'http://localhost:8080'
+// 配置 - Vite 项目使用 import.meta.env.VITE_ 前缀
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
 const USER_KEY_STORAGE_KEY = 'userKey'
 
 // 获取或生成 userKey
@@ -24,7 +24,7 @@ function generateUUID() {
 }
 
 // 创建 axios 实例
-const request = axios.create({
+export const request = axios.create({
   baseURL: API_BASE_URL,
   timeout: 60000
 })
@@ -155,13 +155,19 @@ export function uploadAudio(filePath) {
       },
       success: (res) => {
         try {
-          const data = JSON.parse(res.data)
+          // 检查响应数据是否有效
+          if (!res.data) {
+            reject(new Error('服务器无响应'))
+            return
+          }
+          const data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
           if (data.success) {
             resolve(data)
           } else {
             reject(new Error(data.message || '上传失败'))
           }
         } catch (e) {
+          console.error('解析响应失败:', e)
           reject(new Error('解析响应失败'))
         }
       },

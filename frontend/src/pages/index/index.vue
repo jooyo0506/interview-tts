@@ -221,7 +221,11 @@ const charLimit = computed(() => userInfo.value?.monthlyCharLimit || 5000)
 
 onMounted(async () => {
   const userKey = getUserKey()
-  await initUser(userKey)
+  try {
+    await initUser(userKey)
+  } catch (e) {
+    console.warn('初始化用户跳过:', e.message)
+  }
   token.value = uni.getStorageSync('token') || ''
   if (token.value) {
     loadUserInfo()

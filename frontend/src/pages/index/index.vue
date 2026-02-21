@@ -186,6 +186,11 @@
           </view>
         </view>
       </scroll-view>
+
+      <!-- 存储提示 -->
+      <view class="storage-hint" v-if="recentList.length > 0">
+        <text>VIP 享永久云端存储，普通用户仅保留最近 7 天记录</text>
+      </view>
     </view>
 
     <!-- 底部提示 -->
@@ -1020,6 +1025,17 @@ function formatDuration(seconds) {
   padding: 32px 20px;
   position: relative;
   z-index: 1;
+}
+
+.storage-hint {
+  text-align: center;
+  margin-top: 24rpx;
+  padding: 16rpx;
+
+  text {
+    font-size: 22rpx;
+    color: rgba(255, 255, 255, 0.3);
+  }
 }
 
 .empty-state {

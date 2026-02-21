@@ -35,6 +35,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
         SysUser user = (SysUser) request.getAttribute("currentUser");
         if (user == null) {
             response.setStatus(401);
+            response.setContentType("application/json;charset=UTF-8");
             response.getWriter().write("{\"success\":false,\"message\":\"请先登录\"}");
             return false;
         }
@@ -43,6 +44,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
         UserType requiredType = annotation.value();
         if (requiredType == UserType.VIP && user.getUserType() != UserType.VIP) {
             response.setStatus(403);
+            response.setContentType("application/json;charset=UTF-8");
             response.getWriter().write("{\"success\":false,\"message\":\"VIP权限不足\"}");
             return false;
         }
@@ -53,6 +55,7 @@ public class PermissionInterceptor implements HandlerInterceptor {
             resetMonthlyCharIfNeeded(user);
             if (user.getMonthlyCharUsed() >= user.getMonthlyCharLimit()) {
                 response.setStatus(403);
+                response.setContentType("application/json;charset=UTF-8");
                 response.getWriter().write("{\"success\":false,\"message\":\"本月字数限额已用完\"}");
                 return false;
             }

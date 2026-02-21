@@ -12,7 +12,9 @@ import java.util.Date;
  */
 public class JwtUtil {
 
-    private static final String SECRET = "interview-tts-secret-key-2026";
+    private static final String SECRET = System.getenv("JWT_SECRET") != null
+            ? System.getenv("JWT_SECRET")
+            : "interview-tts-secret-key-2026-fallback-change-in-prod";
     private static final long EXPIRE = 7 * 24 * 60 * 60 * 1000L; // 7天
 
     private static final SecretKey KEY = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));

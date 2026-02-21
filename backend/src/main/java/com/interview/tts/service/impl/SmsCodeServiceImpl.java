@@ -7,8 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -25,7 +25,7 @@ public class SmsCodeServiceImpl implements SmsCodeService {
     private static final ConcurrentHashMap<String, Long> PHONE_LIMIT = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, Long> IP_LIMIT = new ConcurrentHashMap<>();
 
-    private static final int PHONE_LIMIT_MIN = 60;  // 1分钟
+    private static final long PHONE_LIMIT_MIN_WINDOW = 60 * 1000;  // 1分钟窗口
     private static final int PHONE_LIMIT_DAY = 5;   // 1天5次
     private static final int IP_LIMIT_DAY = 20;     // 1天20次
 
@@ -82,9 +82,10 @@ public class SmsCodeServiceImpl implements SmsCodeService {
             throw new RuntimeException("今日发送次数已达上限");
         }
 
+        // 分钟级限流：检查最近1分钟内是否发送过
         String minKey = phone + "_min";
-        Long minCount = PHONE_LIMIT.get(minKey);
-        if (minCount != null && minCount >= 1) {
+        Long lastTime = PHONE_LIMIT.get(minKey);
+        if (lastTime != null && System.currentTimeMillis() - lastTime < PHONE_LIMIT_MIN_WINDOW) {
             throw new RuntimeException("发送过于频繁，请稍后再试");
         }
     }
@@ -112,7 +113,7 @@ public class SmsCodeServiceImpl implements SmsCodeService {
     }
 
     private String generateCode() {
-        Random random = new Random();
+        SecureRandom random = new SecureRandom();
         return String.format("%06d", random.nextInt(1000000));
     }
 }

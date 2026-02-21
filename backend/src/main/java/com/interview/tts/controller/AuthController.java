@@ -6,6 +6,7 @@ import com.interview.tts.dto.AuthResponse;
 import com.interview.tts.entity.SysUser;
 import com.interview.tts.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,7 +38,7 @@ public class AuthController {
      */
     @PostMapping("/register")
     public ApiResponse<AuthResponse> register(
-            @RequestBody AuthRequest request,
+            @Valid @RequestBody AuthRequest request,
             HttpServletRequest httpRequest) {
         String ip = getClientIp(httpRequest);
         AuthResponse response = authService.register(request, ip);
@@ -48,7 +49,7 @@ public class AuthController {
      * 密码登录
      */
     @PostMapping("/login")
-    public ApiResponse<AuthResponse> login(@RequestBody AuthRequest request) {
+    public ApiResponse<AuthResponse> login(@Valid @RequestBody AuthRequest request) {
         AuthResponse response = authService.loginByPassword(request.getPhone(), request.getPassword());
         return ApiResponse.success(response);
     }
@@ -58,7 +59,7 @@ public class AuthController {
      */
     @PostMapping("/login-by-code")
     public ApiResponse<AuthResponse> loginByCode(
-            @RequestBody AuthRequest request,
+            @Valid @RequestBody AuthRequest request,
             HttpServletRequest httpRequest) {
         String ip = getClientIp(httpRequest);
         AuthResponse response = authService.loginByCode(request.getPhone(), request.getCode(), ip);
@@ -79,6 +80,10 @@ public class AuthController {
 
     private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
+        if (ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
+            // X-Forwarded-For 可能包含多个IP，取第一个（真实客户端）
+            ip = ip.split(",")[0].trim();
+        }
         if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("X-Real-IP");
         }

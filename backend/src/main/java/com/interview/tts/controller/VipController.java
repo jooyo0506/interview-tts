@@ -34,13 +34,15 @@ public class VipController {
     @GetMapping("/plans")
     public ApiResponse<List<Map<String, Object>>> getPlans() {
         List<Map<String, Object>> plans = Arrays.stream(VipPlan.values())
-                .map(plan -> Map.of(
-                        "type", plan.name(),
-                        "name", plan.getName(),
-                        "days", plan.getDays(),
-                        "price", plan.getPrice(),
-                        "charLimit", plan.getCharLimit()
-                ))
+                .map(plan -> {
+                    Map<String, Object> map = new java.util.HashMap<>();
+                    map.put("type", plan.name());
+                    map.put("name", plan.getName());
+                    map.put("days", plan.getDays());
+                    map.put("price", plan.getPrice());
+                    map.put("charLimit", plan.getCharLimit());
+                    return map;
+                })
                 .collect(Collectors.toList());
         return ApiResponse.success(plans);
     }

@@ -12,17 +12,27 @@ interview-tts/
 │       │   ├── VoiceCloneController.java
 │       │   ├── PlaylistController.java
 │       │   ├── UserController.java
-│       │   └── UploadController.java
+│       │   ├── UploadController.java
+│       │   └── TtsV2Controller.java      # TTSv2.0控制器
 │       ├── service/            # 业务逻辑
 │       │   ├── AudioService.java
 │       │   ├── DouyinTtsService.java
 │       │   ├── StorageService.java
 │       │   ├── LlmScriptService.java
+│       │   ├── ttsv2/          # TTSv2.0服务
+│       │   │   ├── TtsV2Service.java
+│       │   │   ├── TtsV2WebSocketClient.java
+│       │   │   ├── TtsV2Message.java
+│       │   │   ├── TtsV2EventType.java
+│       │   │   ├── TtsV2Request.java
+│       │   │   ├── TtsV2Response.java
+│       │   │   └── VoiceInfo.java
 │       │   └── ...
 │       ├── entity/             # 数据实体
 │       ├── repository/         # 数据访问
 │       ├── dto/               # 数据传输对象
 │       ├── config/            # 配置
+│       │   └── TtsV2Properties.java
 │       └── interceptor/       # 拦截器
 │
 ├── frontend/                  # Vue3 + uni-app前端

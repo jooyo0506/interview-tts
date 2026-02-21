@@ -17,6 +17,17 @@
 ### 1. 文本转语音 (TTS)
 将文字转换为语音输出
 
+#### TTS v1.0
+- 短文本合成 (≤300字)
+- 长文本异步合成 (≤1万字)
+- 普通版 / 情感预测版
+
+#### TTS v2.0 (新增)
+- **语音指令**: #开心 / #悲伤 / #四川话 / #撒娇 等
+- **引用上文**: 让AI理解语境，承接情绪
+- **语音标签**: 【开心】 / 【撒娇】 / 【悄悄话】 等
+- **WebSocket流式**: 实时返回音频流
+
 ### 2. AI播客
 将文本转换为双人对谈节目（主播A + 主播B）
 
@@ -40,6 +51,8 @@
 | POST | /api/user/init | 初始化用户 |
 | POST | /api/tts/generate | 生成TTS音频 |
 | GET | /api/tts/voices | 获取音色列表 |
+| POST | /api/tts/v2/synthesize | TTSv2.0流式合成 |
+| GET | /api/tts/v2/voices | TTSv2.0支持音色 |
 | GET | /api/audio/my-list | 获取我的音频列表 |
 | POST | /api/audio/collect | 收藏/取消收藏 |
 | GET | /api/audio/collect-list | 获取收藏列表 |
@@ -96,7 +109,8 @@
 | 路径 | 页面 | 说明 |
 |------|------|------|
 | /pages/index/index | 首页 | 功能入口 |
-| /pages/tts/index | 文本转语音 | TTS生成 |
+| /pages/tts/index | 文本转语音 | TTS v1.0 |
+| /pages/tts/v2 | 语音合成v2 | TTS v2.0 (语音指令/标签/上文) |
 | /pages/podcast/create | AI播客 | 播客创建 |
 | /pages/voice/clone | 声音复刻 | 复刻管理 |
 | /pages/translate/live | 同声传译 | 翻译功能 |
@@ -142,6 +156,8 @@
 
 ## 音色列表
 
+### TTS v1.0 音色
+
 | 音色ID | 语言 | 性别 | 名称 |
 |--------|------|------|------|
 | BV001_streaming | zh-CN | Female | 通用女声 |
@@ -154,6 +170,15 @@
 | BV524_streaming | ja-JP | Male | 日语男声 |
 | BV503_streaming | en-US | Female | Ariana |
 | BV504_streaming | en-US | Male | Jackson |
+
+### TTS v2.0 情感音色 (支持语音指令/标签)
+
+| 音色ID | 语言 | 性别 | 名称 | 支持功能 |
+|--------|------|------|------|----------|
+| zh_female_cancan_mars_bigtts | zh-CN | 女 | 灿灿(可爱女生) | 全部 |
+| zh_female_xiaoyuan_mars_bigtts | zh-CN | 女 | 调皮公主 | 全部 |
+| zh_male_shengyang_mars_bigtts | zh-CN | 男 | 爽朗少年 | 全部 |
+| zh_male_tiancai_mars_bigtts | zh-CN | 男 | 天才同桌 | 全部 |
 
 ---
 
@@ -266,3 +291,24 @@ npm run dev:h5
 2. 上传3-5个语音样本（10-30秒）
 3. 等待复刻完成（状态轮询）
 4. 复刻成功后可在TTS页面使用
+
+### Q: TTSv2.0 怎么使用?
+1. 进入 `/pages/tts/v2` 页面
+2. 选择支持情感的音色（如灿灿）
+3. 选择模式：默认/语音指令/引用上文
+4. 输入文本，支持以下格式：
+   - `#开心` / `#悲伤` - 语音指令
+   - `【开心】` / 【撒娇】 - 语音标签
+5. 点击合成试听
+
+### Q: 如何配置环境变量?
+```bash
+# Linux/Mac
+export VOLCENGINE_API_KEY="your_api_key"
+export VOLCENGINE_SECRET_KEY="your_secret_key"
+export VOLCENGINE_APP_ID="your_app_id"
+export VOLCENGINE_ACCESS_TOKEN="your_token"
+
+# Windows CMD
+set VOLCENGINE_API_KEY=your_api_key
+

@@ -117,7 +117,39 @@ npm run dev
 
 ### 版本记录
 
-- 2026-02-21: 语音合成v2.0 + 移动端优化
+- 2026-02-22: Bug修复 (v1.1.1)
+  - 前端修复
+    - 修复音频播放器显示 NaN:NaN 的问题
+    - 修复音频错误处理 errMsg undefined 问题
+    - 修复 play() 返回值 undefined 导致 catch 报错
+    - 修复 JSON.parse(undefined) 错误
+  - 后端修复
+    - 修复 R2 public-domain 配置缺少 // 的问题
+    - 导致生成的音频 URL 无效
+
+- 2026-02-21: 语音合成v2.0 + 移动端优化 (v1.1.0)
+  - 新增 TTSv2.0 双向流式语音合成
+    - 语音指令功能 (#开心/#悲伤/#四川话等)
+    - 引用上文功能 (让AI理解语境)
+    - 语音标签功能 (【开心】/【撒娇】等)
+    - WebSocket流式音频
+  - 新增长文本任务页面 (pages/tts/task.vue)
+  - 新增长短文本模式切换 (pages/tts/index.vue)
+  - 移动端适配优化
+    - index.vue 使用 safe-area-inset-bottom
+    - my.vue 改为 flex 弹性布局
+    - 修复 100vh vs 100dvh 问题
+    - 添加 iOS 刘海屏适配
+  - 降级处理机制
+    - 新增 temp_audio_url 字段存储临时URL
+    - 新增 download_failed 标记下载失败状态
+    - AudioGenerateResponse 新增 audioUrl 字段
+  - 移除硬编码API密钥，改用环境变量
+  - 新增页面 pages/tts/v2.vue
+  - 修复 AudioService 编译错误
+  - GitHub 安全推送
+
+- 2026-02-20: 初始版本
   - 新增 TTSv2.0 双向流式语音合成
     - 语音指令功能 (#开心/#悲伤/#四川话等)
     - 引用上文功能 (让AI理解语境)

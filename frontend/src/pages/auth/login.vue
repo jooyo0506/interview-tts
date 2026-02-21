@@ -45,6 +45,20 @@
         />
       </view>
 
+      <!-- 数学验证码 -->
+      <view class="input-group captcha-group" v-if="tab === 'code'">
+        <input
+          class="input captcha-input"
+          v-model="form.captcha"
+          type="number"
+          placeholder="请输入计算结果"
+          maxlength="3"
+        />
+        <view class="captcha-question" @click="refreshCaptcha">
+          <text>{{ captchaQuestion }}</text>
+        </view>
+      </view>
+
       <!-- 验证码登录 -->
       <view class="input-group code-group" v-if="tab === 'code'">
         <input
@@ -92,8 +106,28 @@ const countdown = ref(0)
 const form = ref({
   phone: '',
   password: '',
-  code: ''
+  code: '',
+  captcha: ''
 })
+
+const captchaQuestion = ref('')
+const captchaAnswer = ref(0)
+
+// 生成数学验证码
+function generateCaptcha() {
+  const a = Math.floor(Math.random() * 10) + 1
+  const b = Math.floor(Math.random() * 10) + 1
+  const isPlus = Math.random() > 0.5
+  captchaAnswer.value = isPlus ? a + b : a - b
+  captchaQuestion.value = `${a} ${isPlus ? '+' : '-'} ${b} = ?`
+}
+
+function refreshCaptcha() {
+  generateCaptcha()
+}
+
+// 初始化验证码
+generateCaptcha()
 
 let countdownTimer = null
 
@@ -111,6 +145,13 @@ async function sendCode() {
   if (countdown.value > 0) return
   if (!form.value.phone || form.value.phone.length !== 11) {
     uni.showToast({ title: '请输入正确的手机号', icon: 'none' })
+    return
+  }
+
+  // 验证数学验证码
+  if (String(form.value.captcha) !== String(captchaAnswer.value)) {
+    uni.showToast({ title: '请先完成计算验证', icon: 'none' })
+    refreshCaptcha()
     return
   }
 
@@ -225,6 +266,27 @@ function goRegister() {
 
 .input-group {
   margin-bottom: 16px;
+}
+
+// 数学验证码
+.captcha-group {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.captcha-input {
+  flex: 1;
+}
+
+.captcha-question {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  padding: 24rpx 30rpx;
+  border-radius: 12rpx;
+  color: #fff;
+  font-weight: bold;
+  font-size: 28rpx;
+  white-space: nowrap;
 }
 
 .input {

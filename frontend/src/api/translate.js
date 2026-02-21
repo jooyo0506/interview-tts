@@ -1,4 +1,4 @@
-import request from './index'
+import { request } from './index'
 
 // 文本翻译
 export function translateText(text, sourceLang, targetLang) {

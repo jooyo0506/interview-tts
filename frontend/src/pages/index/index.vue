@@ -43,6 +43,22 @@
         </view>
       </view>
 
+      <view class="scenario-card purple" @click="goToTtsV2">
+        <view class="card-glow"></view>
+        <view class="card-content">
+          <view class="card-icon-wrap">
+            <text class="card-icon">✨</text>
+          </view>
+          <view class="card-info">
+            <text class="card-title">情感合成 v2</text>
+            <text class="card-desc">语音指令、情感标签、上下文理解</text>
+          </view>
+        </view>
+        <view class="card-arrow">
+          <text>→</text>
+        </view>
+      </view>
+
       <view class="scenario-card pink" @click="goToPodcast">
         <view class="card-glow"></view>
         <view class="card-content">
@@ -179,6 +195,12 @@ async function loadRecentList() {
 function goToTextToAudio() {
   uni.navigateTo({
     url: '/pages/tts/index'
+  })
+}
+
+function goToTtsV2() {
+  uni.navigateTo({
+    url: '/pages/tts/v2'
   })
 }
 
@@ -437,6 +459,15 @@ function formatDuration(seconds) {
     }
     .card-icon-wrap {
       background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+    }
+  }
+
+  &.purple {
+    .card-glow {
+      background: radial-gradient(ellipse at 30% 50%, rgba(139, 92, 246, 0.2) 0%, transparent 60%);
+    }
+    .card-icon-wrap {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
     }
   }
 }

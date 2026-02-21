@@ -1,4 +1,4 @@
-import request from './index'
+import { request } from './index'
 
 // 获取会话列表
 export function getChatSessions() {

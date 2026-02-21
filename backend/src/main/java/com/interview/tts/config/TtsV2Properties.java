@@ -19,9 +19,11 @@ public class TtsV2Properties {
     private String wsUrl = "wss://openspeech.bytedance.com/api/v3/tts/bidirection";
 
     /**
-     * 资源ID - TTS2.0字符版
+     * 资源ID - 根据音色选择
+     * seed-tts-2.0: 基础版
+     * seed-tts-emotion-2.0: 情感版
      */
-    private String resourceId = "seed-tts-2.0";
+    private String resourceId = "seed-tts-emotion-2.0";
 
     /**
      * 是否启用TTSv2

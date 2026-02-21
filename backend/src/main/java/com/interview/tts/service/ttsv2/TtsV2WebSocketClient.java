@@ -18,7 +18,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
- * TTS v2.0 双向流式WebSocket客户端
+ * TTS v2.0 双向流式WebSocket客户端 (来自官方示例)
  */
 @Slf4j
 @Component
@@ -41,17 +41,50 @@ public class TtsV2WebSocketClient {
     }
 
     /**
-     * 创建并连接WebSocket
+     * 获取Resource ID - 优先使用配置文件的值
+     * 配置文件: volcengine.tts.v2.resource-id
      */
-    public void connect() throws Exception {
+    private String getResourceIdForVoice(String voiceType) {
+        // 打印配置文件中的resourceId
+        String configuredResourceId = properties.getResourceId();
+        log.info("配置文件中的resourceId: [{}]", configuredResourceId);
+
+        if (configuredResourceId != null && !configuredResourceId.isEmpty()) {
+            return configuredResourceId;
+        }
+        // 备用：根据音色选择
+        if (voiceType == null) {
+            return "seed-tts-2.0";
+        }
+        if (voiceType.startsWith("S_")) {
+            return "volc.megatts.default";
+        }
+        return "seed-tts-2.0";
+    }
+
+    /**
+     * 创建并连接WebSocket
+     * @param voiceType 音色类型，用于选择正确的resource ID
+     */
+    public void connect(String voiceType) throws Exception {
         this.connectId = UUID.randomUUID().toString();
+
+        // 优先使用配置文件的resourceId
+        String resourceId = getResourceIdForVoice(voiceType);
 
         Map<String, String> headers = Map.of(
             "X-Api-App-Key", appId != null ? appId : "",
             "X-Api-Access-Key", accessToken != null ? accessToken : "",
-            "X-Api-Resource-Id", properties.getResourceId(),
+            "X-Api-Resource-Id", resourceId,
             "X-Api-Connect-Id", connectId
         );
+
+        log.info("=== WebSocket请求头 ===");
+        log.info("X-Api-App-Key: [{}]", appId);
+        log.info("X-Api-Access-Key: [{}]", accessToken);
+        log.info("X-Api-Resource-Id: [{}]", resourceId);
+        log.info("X-Api-Connect-Id: [{}]", connectId);
+        log.info("voiceType: [{}]", voiceType);
 
         webSocketClient = new WebSocketClient(new URI(properties.getWsUrl()), headers) {
             @Override
@@ -108,8 +141,10 @@ public class TtsV2WebSocketClient {
      * 发送连接开始消息
      */
     public void sendStartConnection() throws Exception {
-        TtsV2Message message = TtsV2Message.createStartConnection();
-        webSocketClient.send(message.marshal());
+        TtsV2Message message = new TtsV2Message(TtsV2Message.MsgType.FULL_CLIENT_REQUEST, TtsV2Message.MsgFlag.WITH_EVENT);
+        message.setEvent(TtsV2EventType.START_CONNECTION);
+        message.setPayload("{}".getBytes());
+        sendMessage(message);
         log.info("发送: START_CONNECTION");
     }
 
@@ -117,8 +152,10 @@ public class TtsV2WebSocketClient {
      * 发送连接关闭消息
      */
     public void sendFinishConnection() throws Exception {
-        TtsV2Message message = TtsV2Message.createFinishConnection();
-        webSocketClient.send(message.marshal());
+        TtsV2Message message = new TtsV2Message(TtsV2Message.MsgType.FULL_CLIENT_REQUEST, TtsV2Message.MsgFlag.WITH_EVENT);
+        message.setEvent(TtsV2EventType.FINISH_CONNECTION);
+        message.setPayload("{}".getBytes());
+        sendMessage(message);
         log.info("发送: FINISH_CONNECTION");
     }
 
@@ -126,8 +163,11 @@ public class TtsV2WebSocketClient {
      * 发送会话开始消息
      */
     public void sendStartSession(String sessionId, byte[] payload) throws Exception {
-        TtsV2Message message = TtsV2Message.createStartSession(sessionId, payload);
-        webSocketClient.send(message.marshal());
+        TtsV2Message message = new TtsV2Message(TtsV2Message.MsgType.FULL_CLIENT_REQUEST, TtsV2Message.MsgFlag.WITH_EVENT);
+        message.setEvent(TtsV2EventType.START_SESSION);
+        message.setSessionId(sessionId);
+        message.setPayload(payload);
+        sendMessage(message);
         log.info("发送: START_SESSION, sessionId={}", sessionId);
     }
 
@@ -135,8 +175,11 @@ public class TtsV2WebSocketClient {
      * 发送会话结束消息
      */
     public void sendFinishSession(String sessionId) throws Exception {
-        TtsV2Message message = TtsV2Message.createFinishSession(sessionId);
-        webSocketClient.send(message.marshal());
+        TtsV2Message message = new TtsV2Message(TtsV2Message.MsgType.FULL_CLIENT_REQUEST, TtsV2Message.MsgFlag.WITH_EVENT);
+        message.setEvent(TtsV2EventType.FINISH_SESSION);
+        message.setSessionId(sessionId);
+        message.setPayload("{}".getBytes());
+        sendMessage(message);
         log.info("发送: FINISH_SESSION, sessionId={}", sessionId);
     }
 
@@ -144,7 +187,18 @@ public class TtsV2WebSocketClient {
      * 发送文本请求消息
      */
     public void sendTaskRequest(String sessionId, byte[] payload) throws Exception {
-        TtsV2Message message = TtsV2Message.createTaskRequest(sessionId, payload);
+        TtsV2Message message = new TtsV2Message(TtsV2Message.MsgType.FULL_CLIENT_REQUEST, TtsV2Message.MsgFlag.WITH_EVENT);
+        message.setEvent(TtsV2EventType.TASK_REQUEST);
+        message.setSessionId(sessionId);
+        message.setPayload(payload);
+        sendMessage(message);
+    }
+
+    /**
+     * 发送消息
+     */
+    private void sendMessage(TtsV2Message message) throws Exception {
+        log.debug("发送消息: {}", message);
         webSocketClient.send(message.marshal());
     }
 
@@ -167,10 +221,11 @@ public class TtsV2WebSocketClient {
 
             log.debug("收到消息事件: {} (期望: {})", message.getEvent(), expectedEvent);
 
-            if (message.getEvent() == expectedEvent) {
+            if (message.getEvent() != null && message.getEvent().getValue() == expectedEvent) {
                 return message;
-            } else if (message.getEvent() == TtsV2EventType.CONNECTION_FAILED.getValue() ||
-                       message.getEvent() == TtsV2EventType.SESSION_FAILED.getValue()) {
+            } else if (message.getEvent() != null && (
+                       message.getEvent() == TtsV2EventType.CONNECTION_FAILED ||
+                       message.getEvent() == TtsV2EventType.SESSION_FAILED)) {
                 throw new RuntimeException("服务返回错误: " + message.getEvent());
             }
 

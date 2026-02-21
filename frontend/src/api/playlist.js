@@ -1,4 +1,4 @@
-import request from './index'
+import { request } from './index'
 
 // 获取播放列表
 export function getPlaylistList() {

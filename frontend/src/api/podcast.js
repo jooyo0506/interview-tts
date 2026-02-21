@@ -1,4 +1,4 @@
-import request from './index'
+import { request } from './index'
 
 // 生成播客
 export function generatePodcast(title, sourceText, voiceA, voiceB) {

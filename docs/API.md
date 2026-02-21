@@ -78,7 +78,23 @@ Response: {
   "audioId": 123,
   "taskId": "xxx",
   "r2Url": "https://xxx.mp3",
+  "audioUrl": "https://xxx.mp3",  // 降级时返回临时URL
   "duration": 3600
+}
+```
+
+### 4. 获取音频详情
+```
+GET /api/audio/detail/{audioId}
+Header: X-User-Key: {userKey}
+Response: {
+  "id": 123,
+  "name": "音频名称",
+  "r2Url": "https://xxx.mp3",
+  "tempAudioUrl": "https://xxx.tmp3",
+  "downloadFailed": false,
+  "duration": 60,
+  "createTime": "2026-02-21 10:00:00"
 }
 ```
 
@@ -304,7 +320,85 @@ Header: X-User-Key: {userKey}
 | BV033_streaming | 温柔小哥 | Male |
 | BV034_streaming | 知性姐姐 | Female |
 
-## 十二、语言代码
+## 十二、TTSv2 双向流式语音合成
+
+### 1. 获取TTSv2音色列表
+```
+GET /api/tts/v2/voices
+Header: X-User-Key: {userKey}
+Response: {
+  "voices": [
+    {
+      "voiceId": "BV001_streaming",
+      "name": "通用女声",
+      "gender": "female"
+    }
+  ]
+}
+```
+
+### 2. WebSocket流式合成
+```
+ws://localhost:8080/api/tts/v2/stream
+Header: X-User-Key: {userKey}
+Query: text=文本内容&voiceName=BV001_streaming&referenceText=参考文本&voiceInstruction=语音指令
+```
+
+消息格式：
+- 客户端发送:
+```json
+{
+  "event": "start",
+  "text": "需要转换的文本",
+  "voiceName": "BV001_streaming",
+  "referenceText": "参考文本(可选)",
+  "voiceInstruction": "#开心 (可选，语音指令)"
+}
+```
+
+- 服务端返回音频流:
+```json
+{
+  "event": "audio",
+  "audio": "base64编码的音频数据"
+}
+```
+
+- 结束消息:
+```json
+{
+  "event": "finish",
+  "duration": 30
+}
+```
+
+### 3. 语音指令列表
+| 指令 | 效果 |
+|------|------|
+| #开心 | 开心情感 |
+| #悲伤 | 悲伤情感 |
+| #中性 | 中性情感 |
+| #严肃 | 严肃情感 |
+| #兴奋 | 兴奋情感 |
+| #温柔 | 温柔情感 |
+| #礼貌 | 礼貌语气 |
+| #新闻 | 新闻播报 |
+| #客服 | 客服语气 |
+| #四川话 | 四川方言 |
+| #东北话 | 东北方言 |
+| #粤语 | 粤语方言 |
+
+### 4. 语音标签（可在文本中使用）
+| 标签 | 效果 |
+|------|------|
+| 【开心】 | 开心情感 |
+| 【悲伤】 | 悲伤情感 |
+| 【撒娇】 | 撒娇情感 |
+| 【严肃】 | 严肃情感 |
+| 【兴奋】 | 兴奋情感 |
+| 【温柔】 | 温柔情感 |
+
+## 十三、语言代码
 
 | 代码 | 语言 |
 |------|------|

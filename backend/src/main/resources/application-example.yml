@@ -10,10 +10,10 @@ spring:
     username: root
     password: your_password_here
 
-# 火山引擎认证配置 (请使用环境变量)
+# ==================== 火山引擎配置 ====================
 volcengine:
   auth:
-    api-key: ${DOUBAO_API_KEY:}  # 替换为你的API Key
+    api-key: ${VOLCENGINE_API_KEY:}  # 替换为你的API Key
     secret-key: ${VOLCENGINE_SECRET_KEY:}  # 替换为你的Secret Key
   tts:
     app-id: ${VOLCENGINE_APP_ID:}  # 替换为你的APP ID
@@ -21,7 +21,32 @@ volcengine:
     cluster: volcano_tts
     resource-id: volc.tts.default
 
-# 项目配置
+# TTS v2.0 双向流式配置
+  tts.v2:
+    ws-url: wss://openspeech.bytedance.com/api/v3/tts/bidirection
+    resource-id: seed-tts-2.0
+    enabled: true
+
+# R2 Cloudflare 存储配置
+r2:
+  access-key-id: ${R2_ACCESS_KEY_ID:}
+  secret-access-key: ${R2_SECRET_ACCESS_KEY:}
+  bucket-name: ${R2_BUCKET_NAME:}
+  endpoint: ${R2_ENDPOINT:}
+  public-domain: ${R2_PUBLIC_DOMAIN:}
+
+# ==================== 项目配置 ====================
 project:
   max-generate-count-per-day: 20
   max-text-length: 10000
+
+# ==================== 环境变量参考 ====================
+# VOLCENGINE_API_KEY=your_api_key
+# VOLCENGINE_SECRET_KEY=your_secret_key
+# VOLCENGINE_APP_ID=your_app_id
+# VOLCENGINE_ACCESS_TOKEN=your_access_token
+# R2_ACCESS_KEY_ID=your_r2_key
+# R2_SECRET_ACCESS_KEY=your_r2_secret
+# R2_BUCKET_NAME=your_bucket
+# R2_ENDPOINT=https://xxx.r2.cloudflarestorage.com
+# R2_PUBLIC_DOMAIN=https://your-domain.com

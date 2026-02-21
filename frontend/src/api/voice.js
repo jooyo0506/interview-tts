@@ -1,4 +1,4 @@
-import request from './index'
+import { request } from './index'
 
 // 获取克隆声音列表
 export function getVoiceCloneList() {

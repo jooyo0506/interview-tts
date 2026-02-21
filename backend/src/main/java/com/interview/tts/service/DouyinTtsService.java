@@ -73,15 +73,6 @@ public class DouyinTtsService {
         CHINESE_VOICES.add(new VoiceInfo("BV524_streaming", "ja-JP", "Male", "日语男声"));
         CHINESE_VOICES.add(new VoiceInfo("BV503_streaming", "en-US", "Female", "活力女声-Ariana"));
         CHINESE_VOICES.add(new VoiceInfo("BV504_streaming", "en-US", "Male", "活力男声-Jackson"));
-
-        // 旧Edge TTS音色到豆包音色的映射
-        VOICE_MAPPING.put("zh-CN-XiaoxiaoNeural", "BV001_streaming");
-        VOICE_MAPPING.put("zh-CN-YunxiNeural", "BV002_streaming");
-        VOICE_MAPPING.put("zh-CN-YunyangNeural", "BV002_streaming");
-        VOICE_MAPPING.put("zh-CN-XiaoyiNeural", "BV001_streaming");
-        VOICE_MAPPING.put("zh-TW-HsiaoChenNeural", "BV034_streaming");
-        VOICE_MAPPING.put("zh-TW-HsiaoYuNeural", "BV113_streaming");
-        VOICE_MAPPING.put("zh-TW-YunJheNeural", "BV102_streaming");
     }
 
     public DouyinTtsService() {

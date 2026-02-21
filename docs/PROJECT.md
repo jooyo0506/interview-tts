@@ -41,8 +41,12 @@ interview-tts/
 │       ├── pages/             # 页面
 │       │   ├── index/         # 首页
 │       │   ├── tts/           # TTS
+│       │   │   ├── index.vue  # TTS首页(短文本)
+│       │   │   ├── task.vue   # 长文本任务
+│       │   │   └── v2.vue     # TTSv2流式合成
 │       │   ├── podcast/       # 播客
 │       │   ├── voice/         # 声音克隆
+│       │   │   └── clone.vue  # 声音克隆
 │       │   ├── translate/     # 翻译
 │       │   ├── chat/          # 聊天
 │       │   ├── playlist/      # 播放列表
@@ -80,6 +84,8 @@ interview-tts/
                      │ user_id     │
                      │ name        │
                      │ r2_url      │
+                     │ temp_audio_url
+                     │ download_failed
                      │ duration    │
                      └──────┬──────┘
                             │

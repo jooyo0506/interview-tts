@@ -8,6 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.interview.tts.service.ttsv2.TtsV2Message;
+import com.interview.tts.service.ttsv2.TtsV2Message.MsgType;
+
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -33,6 +36,54 @@ public class TtsV2Service {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
+     * 简化版合成 - 直接传入文本和音色
+     */
+    public byte[] synthesize(String text, String voiceId) throws Exception {
+        TtsV2Request request = new TtsV2Request();
+        request.setText(text);
+        request.setVoiceType(voiceId);
+        request.setUserKey("test-user");
+
+        TtsV2Response response = synthesize(request);
+        // 返回音频数据（不包含上传到R2的逻辑）
+        return downloadAudio(response.getAudioUrl());
+    }
+
+    /**
+     * 带上下文的合成
+     */
+    public byte[] synthesizeWithContext(String text, String voiceId, String contextText) throws Exception {
+        TtsV2Request request = new TtsV2Request();
+        request.setText(text);
+        request.setVoiceType(voiceId);
+        request.setUserKey("test-user");
+        request.setContextText(contextText);
+
+        TtsV2Response response = synthesize(request);
+        return downloadAudio(response.getAudioUrl());
+    }
+
+    /**
+     * 从URL下载音频数据
+     */
+    private byte[] downloadAudio(String url) throws Exception {
+        if (url == null || url.isEmpty()) {
+            throw new RuntimeException("音频URL为空");
+        }
+        // 如果是本地路径，直接读取
+        if (url.startsWith("http://localhost") || url.startsWith("./data")) {
+            String path = url.replace("http://localhost:8080/media/", "");
+            path = path.replace("./data/", "data/");
+            return java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(path));
+        }
+        // 远程URL需要下载
+        java.net.URL urlObj = new java.net.URL(url);
+        try (java.io.InputStream is = urlObj.openStream()) {
+            return is.readAllBytes();
+        }
+    }
+
+    /**
      * 合成语音
      */
     public TtsV2Response synthesize(TtsV2Request request) throws Exception {
@@ -44,30 +95,66 @@ public class TtsV2Service {
         // 2. 构建API请求参数
         Map<String, Object> reqParams = buildRequestParams(request, parsed);
 
+        // 打印完整请求参数
+        try {
+            String reqParamsJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(reqParams);
+            log.info("=== 完整请求参数 ===\n{}", reqParamsJson);
+        } catch (Exception e) {
+            log.info("请求参数: {}", reqParams);
+        }
+
         // 3. 创建WebSocket客户端并连接
         TtsV2WebSocketClient client = webSocketClient;
         try {
-            client.connect();
+            // 根据音色选择正确的resource ID
+            client.connect(request.getVoiceType());
 
             // 4. 发送连接开始
             client.sendStartConnection();
             client.waitForEvent(TtsV2EventType.CONNECTION_STARTED.getValue());
 
-            // 5. 生成会话ID并发送会话开始
+            // 5. 生成会话ID并发送会话开始 (使用官方demo格式)
             String sessionId = UUID.randomUUID().toString();
-            String sessionParamsJson = objectMapper.writeValueAsString(reqParams);
-            client.sendStartSession(sessionId, sessionParamsJson.getBytes(StandardCharsets.UTF_8));
+
+            // 构建START_SESSION请求 (与官方demo一致)
+            Map<String, Object> startSessionRequest = new HashMap<>();
+            startSessionRequest.put("user", reqParams.get("user"));
+            startSessionRequest.put("namespace", reqParams.get("namespace"));
+            startSessionRequest.put("req_params", reqParams.get("req_params"));
+            startSessionRequest.put("event", TtsV2EventType.START_SESSION.getValue());
+
+            String startSessionJson = objectMapper.writeValueAsString(startSessionRequest);
+            log.info("=== START_SESSION ===\n{}", startSessionJson);
+            client.sendStartSession(sessionId, startSessionJson.getBytes(StandardCharsets.UTF_8));
             client.waitForEvent(TtsV2EventType.SESSION_STARTED.getValue());
 
-            // 6. 发送文本
+            // 6. 发送文本 (使用官方示例格式 - 字符逐个发送)
             String textToSynthesize = parsed.getCleanText();
-            Map<String, Object> taskRequest = new HashMap<>();
-            taskRequest.put("text", textToSynthesize);
 
-            String taskJson = objectMapper.writeValueAsString(taskRequest);
-            client.sendTaskRequest(sessionId, taskJson.getBytes(StandardCharsets.UTF_8));
+            // 构建TASK_REQUEST请求 - 逐字符发送
+            for (char c : textToSynthesize.toCharArray()) {
+                // 复制基础req_params并添加text
+                @SuppressWarnings("unchecked")
+                Map<String, Object> baseReqParams = (Map<String, Object>) reqParams.get("req_params");
+                Map<String, Object> currentReqParams = new HashMap<>(baseReqParams);
+                currentReqParams.put("text", String.valueOf(c));
 
-            // 7. 接收音频流和字幕
+                // 构建完整的TASK_REQUEST
+                Map<String, Object> taskRequest = new HashMap<>();
+                taskRequest.put("user", reqParams.get("user"));
+                taskRequest.put("namespace", reqParams.get("namespace"));
+                taskRequest.put("req_params", currentReqParams);
+                taskRequest.put("event", TtsV2EventType.TASK_REQUEST.getValue());
+
+                String taskJson = objectMapper.writeValueAsString(taskRequest);
+                log.info("=== TASK_REQUEST (char: {}) ===\n{}", c, taskJson);
+                client.sendTaskRequest(sessionId, taskJson.getBytes(StandardCharsets.UTF_8));
+            }
+
+            // 7. 发送FINISH_SESSION
+            client.sendFinishSession(sessionId);
+
+            // 8. 接收音频流和字幕
             ByteArrayOutputStream audioStream = new ByteArrayOutputStream();
             List<TtsV2Response.Subtitle> subtitles = new ArrayList<>();
             long startTime = System.currentTimeMillis();
@@ -80,17 +167,28 @@ public class TtsV2Service {
                     break;
                 }
 
-                int event = message.getEvent();
+                // 检查是否是错误消息
+                if (message.getType() == MsgType.ERROR) {
+                    String errorMsg = "未知错误";
+                    int errorCode = message.getErrorCode();
+                    if (message.getPayload() != null) {
+                        errorMsg = new String(message.getPayload(), StandardCharsets.UTF_8);
+                    }
+                    log.error("TTSv2服务返回错误: errorCode={}, errorMsg={}", errorCode, errorMsg);
+                    throw new RuntimeException("TTSv2服务返回错误: " + errorCode + " - " + errorMsg);
+                }
+
+                TtsV2EventType event = message.getEvent();
 
                 // 句子开始
-                if (event == TtsV2EventType.TTS_SENTENCE_START.getValue()) {
+                if (event == TtsV2EventType.TTS_SENTENCE_START) {
                     if (message.getPayload() != null) {
                         currentSentence = new String(message.getPayload(), StandardCharsets.UTF_8);
                         sentenceStartTime = System.currentTimeMillis() - startTime;
                     }
                 }
                 // 句子结束
-                else if (event == TtsV2EventType.TTS_SENTENCE_END.getValue()) {
+                else if (event == TtsV2EventType.TTS_SENTENCE_END) {
                     long sentenceEndTime = System.currentTimeMillis() - startTime;
                     if (!currentSentence.isEmpty()) {
                         subtitles.add(TtsV2Response.Subtitle.builder()
@@ -102,20 +200,19 @@ public class TtsV2Service {
                     currentSentence = "";
                 }
                 // 音频数据
-                else if (event == TtsV2EventType.TTS_RESPONSE.getValue()) {
+                else if (event == TtsV2EventType.TTS_RESPONSE) {
                     if (message.getPayload() != null) {
                         audioStream.write(message.getPayload());
                     }
                 }
                 // 会话结束
-                else if (event == TtsV2EventType.SESSION_FINISHED.getValue()) {
+                else if (event == TtsV2EventType.SESSION_FINISHED) {
                     break;
                 }
             }
 
-            // 8. 发送会话结束
-            client.sendFinishSession(sessionId);
-            client.waitForEvent(TtsV2EventType.SESSION_FINISHED.getValue());
+            // 注意：收到SESSION_FINISHED后，不需要再发送FINISH_SESSION
+            // 服务端已经处理完session，直接发送FINISH_CONNECTION即可
 
             // 9. 计算时长
             int duration = (int) ((System.currentTimeMillis() - startTime) / 1000);
@@ -173,9 +270,11 @@ public class TtsV2Service {
         result.setTags(tags);
 
         // 移除#和【】标记，保留原文
+        // #后面只匹配字母数字中文，不匹配后面的文本
         String cleanText = text
-            .replaceAll("#[^#\\s]+", "")
-            .replaceAll("【[^】]+】", "")
+            .replaceAll("#[a-zA-Z0-9\\u4e00-\\u9fa5]+", "")  // 匹配 #指令
+            .replaceAll("【[^】】]+】", "")  // 匹配 【标签】
+            .replaceAll("\\s+", " ")       // 多空格变单空格
             .trim();
         result.setCleanText(cleanText);
 
@@ -183,49 +282,61 @@ public class TtsV2Service {
     }
 
     /**
-     * 构建API请求参数
+     * 构建API请求参数 (与官方demo一致)
      */
     private Map<String, Object> buildRequestParams(TtsV2Request request, ParsedText parsed) {
         Map<String, Object> reqParams = new HashMap<>();
 
-        // 用户信息
+        // 用户信息 (top level)
         Map<String, String> user = new HashMap<>();
         user.put("uid", request.getUserKey() != null ? request.getUserKey() : "anonymous");
         reqParams.put("user", user);
+
+        // namespace (top level)
         reqParams.put("namespace", "BidirectionalTTS");
+
+        // 构建req_params (包含speaker, audio_params, additions)
+        Map<String, Object> reqParamsInner = new HashMap<>();
+
+        // 音色
+        reqParamsInner.put("speaker", request.getVoiceType());
 
         // 音频参数
         Map<String, Object> audioParams = new HashMap<>();
         audioParams.put("format", "mp3");
         audioParams.put("sample_rate", 24000);
         audioParams.put("enable_timestamp", true);
-        reqParams.put("audio_params", audioParams);
 
-        // 音色
-        reqParams.put("speaker", request.getVoiceType());
+        // 语音指令 - emotion放在audio_params中
+        if (!parsed.getCommands().isEmpty()) {
+            String emotion = parsed.getCommands().get(0);
+            audioParams.put("emotion", emotion);
+        }
+        reqParamsInner.put("audio_params", audioParams);
 
-        // 扩展参数
-        Map<String, Object> additions = new HashMap<>();
-        additions.put("disable_markdown_filter", false);
+        // 扩展参数 - 需要转成JSON字符串（与官方demo一致）
+        Map<String, Object> additionsMap = new HashMap<>();
+        additionsMap.put("disable_markdown_filter", false);
 
         // 引用上文
         if (request.getContextText() != null && !request.getContextText().isEmpty()) {
-            additions.put("context_texts", Collections.singletonList(request.getContextText()));
+            additionsMap.put("context_texts", Collections.singletonList(request.getContextText()));
         }
 
-        // 语音指令 - 转换为emotion参数
-        if (!parsed.getCommands().isEmpty()) {
-            // 取第一个指令作为情感
-            String emotion = parsed.getCommands().get(0);
-            additions.put("emotion", emotion);
-        }
+        // 语音标签 - 使用voice_enroll参数（如果有的话）
+        // 注意：根据火山引擎文档，voice_tags可能不是有效参数，暂时移除
 
-        // 语音标签 - 添加到文本
-        if (!parsed.getTags().isEmpty()) {
-            additions.put("voice_tags", parsed.getTags());
+        // 转成JSON字符串（官方demo格式）
+        String additionsJson;
+        try {
+            additionsJson = objectMapper.writeValueAsString(additionsMap);
+        } catch (Exception e) {
+            additionsJson = "{\"disable_markdown_filter\":false}";
         }
+        reqParamsInner.put("additions", additionsJson);
 
-        reqParams.put("additions", additions);
+        // 将req_params放入顶层
+        reqParams.put("req_params", reqParamsInner);
 
         return reqParams;
     }

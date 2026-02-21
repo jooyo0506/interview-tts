@@ -1,0 +1,59 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: interview-tts
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:interview_tts}?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:123456}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+    database-platform: org.hibernate.dialect.MySQLDialect
+
+storage:
+  mode: r2
+  local-dir: ./data/audio
+  public-base-url: http://localhost:8080/media
+  estimated-bitrate-kbps: 64
+
+r2:
+  access-key-id: ${R2_ACCESS_KEY_ID:e70c02dec14f8b90e22c90801a6b299b}
+  secret-access-key: ${R2_SECRET_ACCESS_KEY:d2049113949927a65d415d68424e7fccf617a47f6f825e54ea385e06c49ab6b5}
+  bucket-name: ${R2_BUCKET_NAME:aiyou}
+  endpoint: ${R2_ENDPOINT:https://97ee3f1f33c1ccdd2a49a527651d5df9.r2.cloudflarestorage.com/aiyou}
+  public-domain: ${R2_PUBLIC_DOMAIN:https://r2.joyoai.xyz}
+
+doubao:
+  api-key: ${DOUBAO_API_KEY:80ea4588-549c-45cd-bc20-2b5a44a0d40e}
+  model-id: ${DOUBAO_MODEL_ID:doubao-seed-2-0-lite-260215}
+
+# 火山引擎认证配置
+volcengine:
+  auth:
+    api-key: ${VOLCENGINE_API_KEY:AKLTYzY3YjQ0NWI4MGYwNGUyZTk0OTE5MTFhYTA4NzYxZGE}
+    secret-key: ${VOLCENGINE_SECRET_KEY:WldFeE1XTTFOakk1WkRGbU5ERTROVGsxWldFd01qTXlOREU1WmpabVpHUQ==}
+  tts:
+    app-id: ${VOLCENGINE_APP_ID:6753084015}
+    access-token: ${VOLCENGINE_ACCESS_TOKEN:PSCT_kKO6FP9RRsv_qjYoyhnWP5tDa4u}
+    cluster: volcano_tts
+    resource-id: volc.tts_async.default
+
+# TTS v2.0 双向流式配置
+  tts.v2:
+    ws-url: wss://openspeech.bytedance.com/api/v3/tts/bidirection
+    resource-id: seed-tts-2.0
+    enabled: true
+
+project:
+  max-generate-count-per-day: 20
+  max-text-length: 10000
+
+logging:
+  level:
+    com.interview.tts: DEBUG

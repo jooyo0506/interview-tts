@@ -331,11 +331,19 @@ async function synthesize() {
       initAudio()
       audioElement.src = audioUrl.value
       // 尝试播放并处理可能的加载错误
-      audioElement.play().catch(err => {
-        console.error('播放失败:', err)
-        const errMsg = err?.message || '音频加载失败，请重试'
-        audioError.value = errMsg
-      })
+      // play() 可能返回 undefined 或非 Promise，需要容错
+      try {
+        const playPromise = audioElement.play()
+        if (playPromise && typeof playPromise.catch === 'function') {
+          playPromise.catch(err => {
+            console.error('播放失败:', err)
+            audioError.value = err?.message || '音频加载失败，请重试'
+          })
+        }
+      } catch (err) {
+        console.error('播放异常:', err)
+        audioError.value = '音频加载失败，请重试'
+      }
       uni.showToast({ title: '合成成功', icon: 'success' })
     } else {
       audioError.value = '合成失败，未返回音频'

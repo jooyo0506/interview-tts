@@ -26,8 +26,23 @@ r2:
   access-key-id: ${R2_ACCESS_KEY_ID:e70c02dec14f8b90e22c90801a6b299b}
   secret-access-key: ${R2_SECRET_ACCESS_KEY:d2049113949927a65d415d68424e7fccf617a47f6f825e54ea385e06c49ab6b5}
   bucket-name: ${R2_BUCKET_NAME:aiyou}
-  endpoint: ${R2_ENDPOINT:https://97ee3f1f33c1ccdd2a49a527651d5df9.r2.cloudflarestorage.com/aiyou}
-  public-domain: ${R2_PUBLIC_DOMAIN:https://r2.joyoai.xyz}
+  endpoint: ${R2_ENDPOINT:https://97ee3f1f33c1ccdd2a49a527651d5df9.r2.cloudflarestorage.com}
+  public-domain: ${R2_PUBLIC_DOMAIN:https://r2.joyoai.xyz/aiyou}
+
+# Redis 配置
+redis:
+  host: ${REDIS_HOST:localhost}
+  port: ${REDIS_PORT:6379}
+  password: ${REDIS_PASSWORD:}
+
+# 短信配置
+sms:
+  provider: aliyun
+  aliyun:
+    access-key-id: ${ALIYUN_ACCESS_KEY_ID:}
+    access-key-secret: ${ALIYUN_ACCESS_KEY_SECRET:}
+    sign-name: ${ALIYUN_SMS_SIGN_NAME:ViVi}
+    template-code: ${ALIYUN_SMS_TEMPLATE_CODE:}
 
 doubao:
   api-key: ${DOUBAO_API_KEY:80ea4588-549c-45cd-bc20-2b5a44a0d40e}

@@ -30,3 +30,6 @@ unpackage/
 
 # Data files
 data/
+
+# Test files
+backend/src/test/

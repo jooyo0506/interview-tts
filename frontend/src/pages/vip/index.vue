@@ -55,6 +55,7 @@
           <text class="plan-name">{{ plan.name }}</text>
           <text class="plan-price">¥{{ plan.price / 100 }}</text>
           <text class="plan-days">{{ plan.days }}天</text>
+          <text class="daily-price" v-if="plan.type === 'YEARLY'">每日仅需 ¥{{ (plan.price / 100 / plan.days * 30).toFixed(1) }}元</text>
         </view>
       </view>
     </view>
@@ -274,6 +275,13 @@ async function handleBuy() {
   display: block;
   font-size: 12px;
   color: rgba(220, 218, 255, 0.6);
+}
+
+.daily-price {
+  display: block;
+  font-size: 20rpx;
+  color: #FFD700;
+  margin-top: 8rpx;
 }
 
 .recommend-tag {

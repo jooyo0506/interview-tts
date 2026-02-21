@@ -48,7 +48,7 @@
         <!-- 情感预测开关（长文本模式） -->
         <view v-if="textMode === 'long'" class="emotion-bar">
           <view class="emotion-info">
-            <text class="emotion-icon">✨</text>
+            <text class="emotion-icon" :class="{ active: useEmotion }">✨</text>
             <text class="emotion-text">情感预测</text>
           </view>
           <switch
@@ -57,6 +57,11 @@
             class="emotion-switch"
             color="#f59e0b"
           />
+        </view>
+
+        <!-- AI导演提示 -->
+        <view v-if="useEmotion && textMode === 'long'" class="ai-director-hint">
+          <text>🎬 AI导演已就绪，将自动为您编排语调、停顿与背景音</text>
         </view>
 
         <!-- 输入区域 -->
@@ -529,9 +534,10 @@ $male-color: #3b82f6;
   transform: translateX(-50%);
   width: 30px;
   height: 3px;
-  background: $accent-primary;
+  background: linear-gradient(90deg, $accent-primary, $accent-secondary);
   border-radius: 2px;
   animation: slideUp 0.3s ease;
+  box-shadow: 0 0 10px $accent-glow;
 }
 
 @keyframes slideUp {
@@ -582,6 +588,20 @@ $male-color: #3b82f6;
 
 .emotion-icon {
   font-size: 18px;
+  animation: none;
+
+  &.active {
+    animation: purpleGlow 2s ease-in-out infinite;
+  }
+}
+
+@keyframes purpleGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px rgba(139, 92, 246, 0.6));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(139, 92, 246, 1));
+  }
 }
 
 .emotion-text {
@@ -592,6 +612,20 @@ $male-color: #3b82f6;
 .emotion-switch {
   transform: scale(0.8);
   transform-origin: right center;
+}
+
+.ai-director-hint {
+  padding: 12rpx 20rpx;
+  margin-bottom: 16rpx;
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 12rpx;
+  border-left: 4rpx solid #8b5cf6;
+
+  text {
+    font-size: 22rpx;
+    color: #8b5cf6;
+    line-height: 1.4;
+  }
 }
 
 .textarea-wrapper {
@@ -773,6 +807,73 @@ $male-color: #3b82f6;
       border-color: rgba(236, 72, 153, 0.5);
     }
   }
+
+  &.vip-locked {
+    opacity: 0.6;
+    cursor: pointer;
+
+    .voice-avatar {
+      filter: grayscale(50%);
+    }
+  }
+}
+
+.voice-vip-badge {
+  position: absolute;
+  top: -8rpx;
+  right: -8rpx;
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #000;
+  font-size: 18rpx;
+  font-weight: bold;
+  padding: 2rpx 8rpx;
+  border-radius: 8rpx;
+  z-index: 5;
+}
+
+// Skeleton placeholder
+.voice-skeleton {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  min-width: 160px;
+
+  .skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  .skeleton-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    .skeleton-line {
+      height: 12px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+
+      &:last-child {
+        width: 60%;
+      }
+    }
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 @keyframes fadeInUp {
@@ -864,21 +965,34 @@ $male-color: #3b82f6;
   position: relative;
   height: 56px;
   border-radius: 28px;
-  background: linear-gradient(135deg, $accent-primary 0%, $accent-secondary 100%);
+  background: linear-gradient(135deg, $accent-primary 0%, #8b5cf6 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
 
   &.disabled {
     background: rgba(255, 255, 255, 0.1);
     opacity: 0.6;
+    box-shadow: none;
   }
 
   &:not(.disabled):active {
     transform: scale(0.98);
   }
+
+  &.loading {
+    background: linear-gradient(90deg, $accent-primary 0%, #8b5cf6 50%, $accent-primary 100%);
+    background-size: 200% 100%;
+    animation: gradientMove 1.5s ease infinite;
+  }
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
 }
 
 .btn-content {

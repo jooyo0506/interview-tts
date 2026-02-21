@@ -8,44 +8,54 @@
       <view class="noise-overlay"></view>
     </view>
 
-    <!-- 顶部品牌区 -->
+    <!-- 顶部导航栏 -->
+    <view class="top-nav">
+      <view class="nav-left">
+        <text class="logo-text">ViVi 2.0</text>
+      </view>
+      <view class="nav-right" @click="handleAvatarClick">
+        <!-- 未登录：头像占位符+登录 -->
+        <template v-if="!isLoggedIn">
+          <view class="avatar-placeholder">
+            <text>👤</text>
+          </view>
+          <text class="login-text">登录</text>
+        </template>
+        <!-- 已登录：头像+皇冠 -->
+        <template v-else>
+          <view class="avatar">
+            <text>👤</text>
+          </view>
+          <view class="crown-icon" :class="{ vip: isVip }" @click.stop="goToVip">
+            {{ isVip ? '👑' : '👑' }}
+          </view>
+        </template>
+      </view>
+    </view>
+
+    <!-- 标题区 -->
     <view class="brand-section">
       <view class="brand-content">
-        <view class="brand-logo">
-          <view class="logo-ring"></view>
-          <text class="logo-icon">🔊</text>
-        </view>
         <text class="brand-name">声读</text>
         <text class="brand-slogan">让文字发声，随时听起来</text>
       </view>
-
-      <!-- 装饰性声波 -->
-      <view class="decorative-waves">
-        <view v-for="i in 5" :key="i" class="d-wave" :style="{ '--i': i }"></view>
-      </view>
     </view>
 
-    <!-- 用户状态栏 -->
-    <view class="user-status-bar" v-if="isLoggedIn">
-      <view class="user-info" @click="goToMy">
-        <view class="avatar">
-          <text>👤</text>
-        </view>
-        <text class="username">{{ userInfo?.nickname || '用户' }}</text>
+    <!-- 字数仪表盘 -->
+    <view class="char-dashboard" v-if="isLoggedIn" @click="showUpgradePopup">
+      <view class="dashboard-left">
+        <text class="label" v-if="isVip">VIP会员</text>
+        <text class="label" v-else>剩余字数</text>
+        <text class="value" v-if="isVip">无限</text>
+        <text class="value" v-else>{{ charLimit - usedChars }}</text>
+        <text class="unit" v-if="!isVip">字</text>
       </view>
-      <view class="quota-info" v-if="!isVip">
-        <text class="quota-text">{{ usedChars }} / {{ charLimit }} 字</text>
-        <view class="quota-bar">
-          <view class="quota-fill" :style="{ width: Math.min((usedChars / charLimit * 100), 100) + '%' }"></view>
+      <view class="dashboard-right" v-if="!isVip">
+        <view class="progress-bar">
+          <view class="progress-fill" :style="{ width: Math.min((usedChars / charLimit * 100), 100) + '%' }"></view>
         </view>
+        <text class="plus-icon">+</text>
       </view>
-      <text class="vip-badge" v-else>VIP</text>
-    </view>
-
-    <!-- 登录/开通会员栏 -->
-    <view class="login-bar" v-else>
-      <button class="vip-btn" @click="goToVip">开通会员</button>
-      <text class="login-link" @click="goToLogin">登录</text>
     </view>
 
     <!-- 核心场景区 -->
@@ -66,8 +76,9 @@
         </view>
       </view>
 
-      <view class="scenario-card purple" @click="goToTtsV2">
-        <view class="card-glow"></view>
+      <view class="scenario-card vip-card" @click="handleVipCardClick('ttsV2')">
+        <view class="vip-badge-corner">Pro</view>
+        <view class="card-glow purple-glow"></view>
         <view class="card-content">
           <view class="card-icon-wrap">
             <text class="card-icon">✨</text>
@@ -82,8 +93,9 @@
         </view>
       </view>
 
-      <view class="scenario-card pink" @click="goToPodcast">
-        <view class="card-glow"></view>
+      <view class="scenario-card vip-card" @click="handleVipCardClick('podcast')">
+        <view class="vip-badge-corner">Pro</view>
+        <view class="card-glow purple-glow"></view>
         <view class="card-content">
           <view class="card-icon-wrap">
             <text class="card-icon">🎙️</text>
@@ -299,19 +311,58 @@ function goToPlaylist() {
 function handleToolClick(tool) {
   const vipTools = ['voiceClone', 'translate']
   if (vipTools.includes(tool) && !isVip.value) {
-    uni.showModal({
-      title: 'VIP专属',
-      content: '该功能需要VIP会员才能使用',
-      confirmText: '立即开通',
-      success: (res) => {
-        if (res.confirm) goToVip()
-      }
-    })
+    showVipPopup()
     return
   }
   // 正常跳转
   if (tool === 'voiceClone') goToVoiceClone()
   if (tool === 'translate') goToTranslate()
+}
+
+// 处理头像点击
+function handleAvatarClick() {
+  if (isLoggedIn.value) {
+    goToMy()
+  } else {
+    goToLogin()
+  }
+}
+
+// 显示升级弹窗
+function showUpgradePopup() {
+  if (isVip.value) return
+  uni.showModal({
+    title: '升级VIP',
+    content: '升级VIP尊享无限字数，解锁全功能',
+    confirmText: '立即升级',
+    success: (res) => {
+      if (res.confirm) goToVip()
+    }
+  })
+}
+
+// 处理VIP卡片点击
+function handleVipCardClick(card) {
+  if (!isVip.value) {
+    showVipPopup()
+    return
+  }
+  // VIP用户正常跳转
+  if (card === 'ttsV2') goToTtsV2()
+  if (card === 'podcast') goToPodcast()
+}
+
+// 显示VIP权益弹窗
+function showVipPopup() {
+  uni.showModal({
+    title: 'VIP专属权益',
+    content: '解锁更多高级功能，尊享无限字数合成',
+    confirmText: '立即升级',
+    cancelText: '稍后再说',
+    success: (res) => {
+      if (res.confirm) goToVip()
+    }
+  })
 }
 
 function playItem(item) {
@@ -342,6 +393,147 @@ function formatDuration(seconds) {
   position: relative;
   overflow: hidden;
   padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+}
+
+// 顶部导航栏
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 30rpx;
+  position: relative;
+  z-index: 10;
+}
+
+.nav-left {
+  .logo-text {
+    font-size: 36rpx;
+    font-weight: bold;
+    background: linear-gradient(135deg, #FF6B00, #FFD700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.avatar-placeholder, .avatar {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid rgba(255, 255, 255, 0.2);
+}
+
+.login-text {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.6);
+  transition: all 0.2s;
+
+  &:active {
+    color: #FF6B00;
+  }
+}
+
+.crown-icon {
+  font-size: 24rpx;
+  opacity: 0.4;
+  transition: all 0.2s;
+
+  &.vip {
+    opacity: 1;
+    filter: drop-shadow(0 0 8rpx rgba(255, 215, 0, 0.6));
+  }
+}
+
+// 字数仪表盘
+.char-dashboard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 30rpx;
+  margin: 0 30rpx 30rpx;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10rpx);
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.05);
+}
+
+.dashboard-left {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+
+  .label {
+    font-size: 24rpx;
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  .value {
+    font-size: 40rpx;
+    font-weight: bold;
+    color: #FF6B00;
+  }
+
+  .unit {
+    font-size: 24rpx;
+    color: rgba(255, 255, 255, 0.5);
+  }
+}
+
+.dashboard-right {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex: 1;
+  max-width: 40%;
+  margin-left: 20rpx;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 12rpx;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6rpx;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #FF6B00, #FFD700);
+  border-radius: 6rpx;
+  transition: width 0.3s ease;
+}
+
+.plus-icon {
+  font-size: 28rpx;
+  color: #FFD700;
+  font-weight: bold;
+}
+
+// VIP卡片角标
+.vip-badge-corner {
+  position: absolute;
+  top: 16rpx;
+  right: 16rpx;
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #000;
+  font-size: 20rpx;
+  font-weight: bold;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  z-index: 5;
+}
+
+.purple-glow {
+  background: radial-gradient(ellipse at 30% 50%, rgba(139, 92, 246, 0.3) 0%, transparent 60%) !important;
 }
 
 // 用户状态栏

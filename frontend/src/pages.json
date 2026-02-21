@@ -1,0 +1,107 @@
+{
+  "pages": [
+    {
+      "path": "pages/index/index",
+      "style": {
+        "navigationBarTitleText": "声读",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/play/play",
+      "style": {
+        "navigationBarTitleText": "播放",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/my/my",
+      "style": {
+        "navigationBarTitleText": "我的",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/tts/index",
+      "style": {
+        "navigationBarTitleText": "文本转语音",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/tts/v2",
+      "style": {
+        "navigationBarTitleText": "语音合成v2.0",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/tts/task",
+      "style": {
+        "navigationBarTitleText": "处理中",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/podcast/create",
+      "style": {
+        "navigationBarTitleText": "AI播客",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/voice/clone",
+      "style": {
+        "navigationBarTitleText": "声音复刻",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/translate/live",
+      "style": {
+        "navigationBarTitleText": "同声传译",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/playlist/index",
+      "style": {
+        "navigationBarTitleText": "播放列表",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/playlist/detail",
+      "style": {
+        "navigationBarTitleText": "列表详情",
+        "navigationStyle": "custom"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "声读",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F8F8F8"
+  },
+  "tabBar": {
+    "color": "#7A7E83",
+    "selectedColor": "#3c9cff",
+    "borderStyle": "black",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "static/tab-home.png",
+        "selectedIconPath": "static/tab-home-active.png"
+      },
+      {
+        "pagePath": "pages/my/my",
+        "text": "我的",
+        "iconPath": "static/tab-my.png",
+        "selectedIconPath": "static/tab-my-active.png"
+      }
+    ]
+  }
+}

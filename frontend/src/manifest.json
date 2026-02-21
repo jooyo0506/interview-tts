@@ -1,0 +1,20 @@
+{
+  "name": "interview-tts-h5",
+  "appid": "__UNI__A1B2C3D",
+  "description": "面试磨耳朵 - 让面试八股文变成听力材料",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "h5": {
+    "title": "声读 - 面试磨耳朵",
+    "router": {
+      "mode": "hash"
+    },
+    "safeArea": {
+      "left": true,
+      "right": true,
+      "top": true,
+      "bottom": true
+    }
+  }
+}

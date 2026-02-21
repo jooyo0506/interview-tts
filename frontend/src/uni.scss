@@ -1,0 +1,45 @@
+/**
+ * 这里是uni-app内置的常用样式变量
+ * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
+ * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需import这个文件）
+ * 为了方便开发者偷懒，uni-app里默认使用CSS变量方式，而在普通web项目中使用@import
+ * 但css变量有兼容性问题，turee 建议使用scss的方式引入变量
+ */
+
+/* 颜色变量 */
+$uni-color-primary: #3c9cff;
+$uni-color-success: #4cd964;
+$uni-color-warning: #f0ad4e;
+$uni-color-error: #dd524d;
+
+/* 文字基本颜色 */
+$uni-text-color: #333;
+$uni-text-color-inverse: #fff;
+$uni-text-color-grey: #999;
+$uni-text-color-placeholder: #808080;
+$uni-text-color-disable: #c0c0c0;
+
+/* 背景颜色 */
+$uni-bg-color: #ffffff;
+$uni-bg-color-grey: #f8f8f8;
+$uni-bg-color-hover: #f1f1f1;
+$uni-bg-color-mask: rgba(0, 0, 0, 0.4);
+
+/* 边框颜色 */
+$uni-border-color: #e5e5e5;
+
+/* 尺寸变量 */
+$uni-spacing-sm: 8px;
+$uni-spacing-base: 15px;
+$uni-spacing-lg: 20px;
+
+/* 圆角 */
+$uni-border-radius-sm: 4px;
+$uni-border-radius-base: 6px;
+$uni-border-radius-lg: 12px;
+$uni-border-radius-circle: 50%;
+
+/* 字体大小 */
+$uni-font-size-sm: 12px;
+$uni-font-size-base: 14px;
+$uni-font-size-lg: 16px;

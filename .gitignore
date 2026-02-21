@@ -1,0 +1,32 @@
+# Build output
+backend/target/
+frontend/dist/
+frontend/node_modules/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment - 敏感配置
+.env
+.env.local
+backend/src/main/resources/application.yml
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# Uni-app
+unpackage/
+
+# Data files
+data/

@@ -1,0 +1,27 @@
+# 示例配置文件 - 请复制为 application.yml 并填入你的真实密钥
+# cp backend/src/main/resources/application-example.yml backend/src/main/resources/application.yml
+
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/interview_tts?useUnicode=true&characterEncoding=utf8
+    username: root
+    password: your_password_here
+
+# 火山引擎认证配置 (请使用环境变量)
+volcengine:
+  auth:
+    api-key: ${DOUBAO_API_KEY:}  # 替换为你的API Key
+    secret-key: ${VOLCENGINE_SECRET_KEY:}  # 替换为你的Secret Key
+  tts:
+    app-id: ${VOLCENGINE_APP_ID:}  # 替换为你的APP ID
+    access-token: ${VOLCENGINE_ACCESS_TOKEN:}  # 替换为你的Access Token
+    cluster: volcano_tts
+    resource-id: volc.tts.default
+
+# 项目配置
+project:
+  max-generate-count-per-day: 20
+  max-text-length: 10000

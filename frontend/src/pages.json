@@ -50,6 +50,13 @@
       }
     },
     {
+      "path": "pages/discover/index",
+      "style": {
+        "navigationBarTitleText": "发现",
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/voice/clone",
       "style": {
         "navigationBarTitleText": "声音复刻",
@@ -116,6 +123,12 @@
         "text": "首页",
         "iconPath": "static/tab-home.png",
         "selectedIconPath": "static/tab-home-active.png"
+      },
+      {
+        "pagePath": "pages/discover/index",
+        "text": "发现",
+        "iconPath": "static/tab-discover.png",
+        "selectedIconPath": "static/tab-discover-active.png"
       },
       {
         "pagePath": "pages/my/my",

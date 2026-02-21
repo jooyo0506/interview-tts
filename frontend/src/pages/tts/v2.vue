@@ -287,7 +287,9 @@ function initAudio() {
   // 音频加载错误处理
   audioElement.onError((err) => {
     console.error('音频加载失败:', err)
-    audioError.value = err.errMsg || '音频加载失败'
+    // err 可能是 undefined 或对象，需要容错处理
+    const errMsg = err?.errMsg || err?.message || '音频加载失败'
+    audioError.value = errMsg
     isPlaying.value = false
   })
 }
@@ -331,7 +333,8 @@ async function synthesize() {
       // 尝试播放并处理可能的加载错误
       audioElement.play().catch(err => {
         console.error('播放失败:', err)
-        audioError.value = '音频加载失败，请重试'
+        const errMsg = err?.message || '音频加载失败，请重试'
+        audioError.value = errMsg
       })
       uni.showToast({ title: '合成成功', icon: 'success' })
     } else {

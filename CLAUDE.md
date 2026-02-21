@@ -91,6 +91,26 @@ TTSv2.0 uses bidirectional WebSocket streaming with ByteDance's seed-tts-2.0 mod
 | POST | /api/tts/v2/synthesize | TTSv2.0流式合成 |
 | GET | /api/tts/v2/voices | 获取支持音色列表 |
 
+## Auth API (用户账户体系)
+
+### Backend
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | /api/auth/send-code | 发送短信验证码 |
+| POST | /api/auth/register | 注册 (手机号+验证码+密码) |
+| POST | /api/auth/login | 密码登录 |
+| POST | /api/auth/login-by-code | 验证码登录 |
+| GET | /api/auth/info | 获取当前用户信息 |
+| GET | /api/vip/plans | 获取VIP套餐列表 |
+| POST | /api/vip/create-order | 创建VIP订单 |
+| POST | /api/vip/mock-pay | Mock支付 (测试用) |
+
+### Frontend
+- `frontend/src/pages/auth/login.vue` - 登录页
+- `frontend/src/pages/auth/register.vue` - 注册页
+- `frontend/src/pages/vip/index.vue` - VIP页面
+- `frontend/src/api/auth.js` - 认证API模块
+
 ## Configuration
 
 ### R2 Storage (Critical)

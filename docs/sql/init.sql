@@ -9,11 +9,18 @@ CREATE TABLE IF NOT EXISTS `sys_user` (
     `nickname` VARCHAR(50) DEFAULT NULL COMMENT '昵称',
     `avatar` VARCHAR(255) DEFAULT NULL COMMENT '头像URL',
     `phone` VARCHAR(20) DEFAULT NULL COMMENT '手机号',
+    `password_hash` VARCHAR(255) DEFAULT NULL COMMENT '密码哈希',
+    `user_type` VARCHAR(20) DEFAULT 'USER' COMMENT '用户类型: USER/VIP',
+    `vip_expire_date` DATETIME DEFAULT NULL COMMENT 'VIP过期时间',
+    `monthly_char_limit` INT DEFAULT 5000 COMMENT '当月字数限额',
+    `monthly_char_used` INT DEFAULT 0 COMMENT '当月已用字数',
+    `last_char_reset_date` DATE DEFAULT NULL COMMENT '上次字数重置日期',
     `email` VARCHAR(100) DEFAULT NULL COMMENT '邮箱',
     `status` VARCHAR(20) DEFAULT 'NORMAL' COMMENT '状态: NORMAL/BANNED',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_user_key` (`user_key`)
+    UNIQUE KEY `uk_user_key` (`user_key`),
+    UNIQUE KEY `uk_phone` (`phone`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表';
 
 -- 文本记录表
@@ -35,6 +42,8 @@ CREATE TABLE IF NOT EXISTS `audio_file` (
     `user_id` BIGINT NOT NULL COMMENT '用户ID',
     `name` VARCHAR(255) DEFAULT NULL COMMENT '音频名称',
     `r2_url` VARCHAR(255) NOT NULL COMMENT '音频URL',
+    `temp_audio_url` VARCHAR(500) DEFAULT NULL COMMENT '火山引擎临时音频URL',
+    `download_failed` TINYINT(1) DEFAULT NULL COMMENT '下载是否失败标记',
     `duration` INT DEFAULT 0 COMMENT '时长(秒)',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     PRIMARY KEY (`id`),
@@ -183,3 +192,31 @@ CREATE TABLE IF NOT EXISTS `playlist_audio` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uk_playlist_audio` (`playlist_id`, `audio_file_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='播放列表音频关联表';
+
+-- 短信验证码表
+CREATE TABLE IF NOT EXISTS `sms_code` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    `phone` VARCHAR(20) NOT NULL COMMENT '手机号',
+    `code` VARCHAR(10) NOT NULL COMMENT '验证码',
+    `ip` VARCHAR(50) DEFAULT NULL COMMENT 'IP地址',
+    `type` VARCHAR(20) DEFAULT 'LOGIN' COMMENT '验证码类型: LOGIN/REGISTER',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `expires_at` DATETIME NOT NULL COMMENT '过期时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_phone` (`phone`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='短信验证码表';
+
+-- VIP订单表
+CREATE TABLE IF NOT EXISTS `vip_order` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `order_no` VARCHAR(64) NOT NULL COMMENT '订单号',
+    `plan_type` VARCHAR(20) NOT NULL COMMENT '套餐类型: MONTHLY/YEARLY/LIFETIME',
+    `amount` DECIMAL(10,2) NOT NULL COMMENT '金额',
+    `status` VARCHAR(20) DEFAULT 'PENDING' COMMENT '状态: PENDING/PAID/CANCELLED',
+    `paid_at` DATETIME DEFAULT NULL COMMENT '支付时间',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    PRIMARY KEY (`id`),
+    KEY `idx_user_id` (`user_id`),
+    UNIQUE KEY `uk_order_no` (`order_no`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='VIP订单表';
